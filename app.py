@@ -123,17 +123,41 @@ def get_logo(max_width):
         except: pass
     return None
 
+# --- FONT YÜKLEME FONKSİYONU (YENİ) ---
+def load_fonts(mode="single"):
+    # Roboto fontlarını klasörden yüklemeye çalışır
+    # mode: "single" (tekli görsel) veya "catalog" (katalog sayfası)
+    
+    font_reg = "Roboto-Regular.ttf"
+    font_bold = "Roboto-Bold.ttf"
+    
+    try:
+        if mode == "single":
+            # Tekli görsel boyutları
+            f_head = ImageFont.truetype(font_reg, 40)
+            f_title = ImageFont.truetype(font_reg, 60)
+            f_price = ImageFont.truetype(font_bold, 120)
+            return f_head, f_title, f_price
+        else:
+            # Katalog boyutları
+            kf_title = ImageFont.truetype(font_reg, 40)
+            kf_price = ImageFont.truetype(font_bold, 60)
+            kf_head = ImageFont.truetype(font_bold, 80)
+            return kf_title, kf_price, kf_head
+            
+    except OSError:
+        # Eğer font dosyaları GitHub'a yüklenmemişse yine default'a döner (ama yükleyince düzelecek)
+        if mode == "single":
+            return ImageFont.load_default(), ImageFont.load_default(), ImageFont.load_default()
+        else:
+            return ImageFont.load_default(), ImageFont.load_default(), ImageFont.load_default()
+
+
 # --- GÖRSEL OLUŞTURUCULAR ---
 def generate_single_image(urun):
     try:
-        try:
-            f_head = ImageFont.truetype("arial.ttf", 40)
-            f_title = ImageFont.truetype("arial.ttf", 60)
-            f_price = ImageFont.truetype("arialbd.ttf", 120)
-        except:
-            f_head = ImageFont.load_default()
-            f_title = ImageFont.load_default()
-            f_price = ImageFont.load_default()
+        # YENİ FONT YÜKLEME SİSTEMİ
+        f_head, f_title, f_price = load_fonts(mode="single")
 
         W, H = 1080, 1920
         canvas = create_gradient(W, H)
@@ -178,12 +202,8 @@ def generate_catalog_pages(urunler):
     COLS, ROWS = 3, 4
     items_per_page = COLS * ROWS
     
-    try:
-        kf_title = ImageFont.truetype("arial.ttf", 40)
-        kf_price = ImageFont.truetype("arialbd.ttf", 60)
-        kf_head = ImageFont.truetype("arialbd.ttf", 80)
-    except:
-        kf_title = kf_price = kf_head = ImageFont.load_default()
+    # YENİ FONT YÜKLEME SİSTEMİ
+    kf_title, kf_price, kf_head = load_fonts(mode="catalog")
 
     logo_img = get_logo(400)
     total_pages = math.ceil(len(urunler) / items_per_page)
@@ -326,7 +346,6 @@ if 'filtered_products' in st.session_state and st.session_state['filtered_produc
                     
                     if f"img_{prod['id']}" in st.session_state and st.session_state[f"img_{prod['id']}"]:
                         img_preview = st.session_state[f"img_{prod['id']}"]
-                        # --- DÜZELTME BURADA YAPILDI ---
                         st.image(img_preview, use_container_width=True)
                         
                         buf = BytesIO()
@@ -371,7 +390,6 @@ if 'filtered_products' in st.session_state and st.session_state['filtered_produc
             for i, (filename, img_obj) in enumerate(pages):
                 with st.container():
                     st.write(f"#### 📄 Sayfa {i+1}")
-                    # --- DÜZELTME BURADA YAPILDI ---
                     st.image(img_obj, caption=f"Katalog Sayfa {i+1}", use_container_width=True)
                     
                     buf = BytesIO()
